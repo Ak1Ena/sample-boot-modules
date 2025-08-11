@@ -2,6 +2,7 @@ package th.mfu;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,14 +24,18 @@ public class ProductController {
     @Autowired
     private ProductRepository prodRepo;
 
+    @Autowired
+    private ProductReviewRepository reviewRepo;
+
     // GET for a product
     @GetMapping("/products/{id}")
     public ResponseEntity<Product> getProduct(@PathVariable Integer id){
-        if(!prodRepo.existsById(id))
-            return new ResponseEntity<Product>(HttpStatus.NOT_FOUND);
-        Optional<Product> product = prodRepo.findById(id);
-        return new ResponseEntity<Product>(product.get(), HttpStatus.OK);
+        return prodRepo.findById(id)
+                .map(product -> new ResponseEntity<>(product, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
+
+
 
     // Get all products
     @GetMapping("/products")
@@ -46,6 +51,16 @@ public class ProductController {
     @GetMapping("/products/price")
     public ResponseEntity<Collection> listByPrice(){
         return new ResponseEntity<Collection>(prodRepo.findByOrderByPrice(), HttpStatus.OK);
+    }
+
+    // GET all reviews for a product
+    @GetMapping("/products/{id}/reviews")
+    public ResponseEntity<List<ProductReview>> getReviewsForProduct(@PathVariable Integer id) {
+        if (!prodRepo.existsById(id)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        List<ProductReview> reviews = reviewRepo.findByProductId(id);
+        return new ResponseEntity<>(reviews, HttpStatus.OK);
     }
 
     // POST for creating a product

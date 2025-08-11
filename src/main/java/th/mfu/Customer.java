@@ -12,7 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -24,7 +24,6 @@ public class Customer {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
-    @JsonProperty("fullname")
     @Column(name="displayname")
     private String name;
     
@@ -33,7 +32,6 @@ public class Customer {
 
     private String email;
 
-    @JsonProperty("tel")
     private String phone;
 
     private LocalDate birthday;
@@ -41,6 +39,10 @@ public class Customer {
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("customer-orders")
     private List<SaleOrder> saleOrders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ProductReview> reviews = new ArrayList<>();
 
     public String getName(){
         return name;
@@ -86,6 +88,13 @@ public class Customer {
     }
     public void setSaleOrders(List<SaleOrder> saleOrders) {
         this.saleOrders = saleOrders;
+    }
+
+    public List<ProductReview> getReviews() {
+        return reviews;
+    }
+    public void setReviews(List<ProductReview> reviews) {
+        this.reviews = reviews;
     }
 
 }

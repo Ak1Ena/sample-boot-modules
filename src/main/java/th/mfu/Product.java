@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -28,6 +29,10 @@ public class Product {
     @OneToMany(mappedBy = "product")
     @JsonIgnore
     private List<SaleOrderItem> saleOrderItems = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ProductReview> reviews = new ArrayList<>();
     public Integer getId() {
         return id;
     }
@@ -65,6 +70,12 @@ public class Product {
     }
     public void setSaleOrderItems(List<SaleOrderItem> saleOrderItems) {
         this.saleOrderItems = saleOrderItems;
+    }
+    public List<ProductReview> getReviews() {
+        return reviews;
+    }
+    public void setReviews(List<ProductReview> reviews) {
+        this.reviews = reviews;
     }
     
 }
