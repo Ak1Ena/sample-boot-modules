@@ -2,6 +2,7 @@ package th.mfu;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -36,6 +37,12 @@ public class CustomerController {
     @GetMapping("/customers")
     public ResponseEntity<Collection> getAllCustomers(){
         return new ResponseEntity<Collection>(custRepo.findAll(), HttpStatus.OK);
+    }
+
+    @GetMapping("/customers/name/{prefix}")
+    public ResponseEntity<Collection> searchCustomerByName(@PathVariable String prefix){
+        List<Customer> results = custRepo.findByNameStartingWith(prefix);
+        return new ResponseEntity<Collection>(results, HttpStatus.OK);
     }
 
 

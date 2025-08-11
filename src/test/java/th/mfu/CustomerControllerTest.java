@@ -1,10 +1,12 @@
 package th.mfu;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,43 +16,64 @@ import org.springframework.http.ResponseEntity;
 @SpringBootTest
 public class CustomerControllerTest {
 
-    // // @Autowired
-    // private CustomerController controller ;
+    @Autowired
+    private CustomerController controller;
 
-    // @Test
-    // public void createAndGet(){
-    //     controller = new CustomerController();
-    //     Customer customer = new Customer();
-    //     customer.setName("John Denver");
-    //     customer.setAddress("123 Main st.");
-    //     customer.setEmail("john@email.com");
-    //     customer.setPhone("0688888888");
+    @Test
+    public void createAndGet() {
+        // create a customer
+        Customer cust = new Customer();
+        cust.setName("Dummy Dummy");
+        cust.setAddress("123 Main st.");
+        cust.setEmail("dummy@email.com");
+        cust.setPhone("1111111");
+        ResponseEntity<String> response = controller.createCustomer(cust);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
-    //     ResponseEntity<String> response = controller.createCustomer(customer);
-    //     assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        // get that customer
+        ResponseEntity<Collection> getResponse = controller.getAllCustomers();
+        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+        assertEquals(1, getResponse.getBody().size());
 
-    //     // get that customer out
-    //     ResponseEntity<Customer> returnCust =  controller.getCustomer(0L);
-    //     assertEquals(HttpStatus.OK, returnCust.getStatusCode());
-    //     assertEquals("John Denver", returnCust.getBody().getName());
-    // }
+    }
 
-    // @Test
-    // public void deleteAndNotFound(){
-    //     controller = new CustomerController();
-    //     // create a new customer
-    //     Customer customer = new Customer();
-    //     customer.setName("John Denver");
-    //     customer.setAddress("123 Main st.");
-    //     customer.setEmail("john@email.com");
-    //     customer.setPhone("0688888888");
+     @Test
+    public void createAndDelete() {
+        // Get the initial number of customers
+        ResponseEntity<Collection> initialGetResponse = controller.getAllCustomers();
+        assertEquals(HttpStatus.OK, initialGetResponse.getStatusCode());
+        int initialSize = initialGetResponse.getBody().size();
 
-    //     controller.createCustomer(customer);
-    //     // delete that customer
-    //     ResponseEntity<String> response = controller.deleteCustomer(0L);
-    //     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    //     // get by id, should return 404
-    //     ResponseEntity<Customer> response2 = controller.getCustomer(0L);
-    //     assertEquals(HttpStatus.NOT_FOUND, response2.getStatusCode());
-    // }
+        // Create a new customer to be deleted
+        Customer cust = new Customer();
+        cust.setName("Delete Me");
+        cust.setAddress("456 Delete Lane");
+        cust.setEmail("delete@me.com");
+        cust.setPhone("2222222");
+        ResponseEntity<String> createResponse = controller.createCustomer(cust);
+        assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
+
+        // Verify the customer was created (the size of the collection should be initialSize + 1)
+        ResponseEntity<Collection> getResponseAfterCreate = controller.getAllCustomers();
+        assertEquals(HttpStatus.OK, getResponseAfterCreate.getStatusCode());
+        assertEquals(initialSize + 1, getResponseAfterCreate.getBody().size());
+
+        // Find the newly created customer to get its ID
+        List<Customer> customersAfterCreate = (List<Customer>) getResponseAfterCreate.getBody();
+        Customer newCustomer = customersAfterCreate.stream()
+                                                    .filter(c -> "Delete Me".equals(c.getName()))
+                                                    .findFirst()
+                                                    .orElse(null);
+        assertNotNull(newCustomer, "Newly created customer should not be null");
+        Long customerId = newCustomer.getId();
+
+        // Delete the customer
+        ResponseEntity<String> deleteResponse = controller.deleteCustomer(customerId);
+        assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
+
+        // Verify the customer was deleted (the size of the collection should be back to initialSize)
+        ResponseEntity<Collection> getResponseAfterDelete = controller.getAllCustomers();
+        assertEquals(HttpStatus.OK, getResponseAfterDelete.getStatusCode());
+        assertEquals(initialSize, getResponseAfterDelete.getBody().size());
+    }
 }
