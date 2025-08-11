@@ -1,14 +1,19 @@
 package th.mfu;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -22,6 +27,7 @@ public class Customer {
     @JsonProperty("fullname")
     @Column(name="displayname")
     private String name;
+    
 
     private String address;
 
@@ -31,6 +37,10 @@ public class Customer {
     private String phone;
 
     private LocalDate birthday;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("customer-orders")
+    private List<SaleOrder> saleOrders = new ArrayList<>();
 
     public String getName(){
         return name;
@@ -69,6 +79,13 @@ public class Customer {
     }
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public List<SaleOrder> getSaleOrders() {
+        return saleOrders;
+    }
+    public void setSaleOrders(List<SaleOrder> saleOrders) {
+        this.saleOrders = saleOrders;
     }
 
 }

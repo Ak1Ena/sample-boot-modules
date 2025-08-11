@@ -1,12 +1,16 @@
 package th.mfu;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -20,6 +24,10 @@ public class Product {
     private Double price;
     private String description;
     private LocalDate manufactureDate;
+
+    @OneToMany(mappedBy = "product")
+    @JsonIgnore
+    private List<SaleOrderItem> saleOrderItems = new ArrayList<>();
     public Integer getId() {
         return id;
     }
@@ -52,7 +60,11 @@ public class Product {
     public void setManufactureDate(LocalDate manufactureDate) {
         this.manufactureDate = manufactureDate;
     }
-
-    
+    public List<SaleOrderItem> getSaleOrderItems() {
+        return saleOrderItems;
+    }
+    public void setSaleOrderItems(List<SaleOrderItem> saleOrderItems) {
+        this.saleOrderItems = saleOrderItems;
+    }
     
 }
