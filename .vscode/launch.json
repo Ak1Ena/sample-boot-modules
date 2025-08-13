@@ -9,6 +9,13 @@
             "name": "App",
             "request": "launch",
             "mainClass": "th.mfu.App",
+            "projectName": "web-service"
+        },
+        {
+            "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "th.mfu.App",
             "projectName": "sample-boot-basic"
         },
         {
