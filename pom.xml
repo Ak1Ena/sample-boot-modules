@@ -20,7 +20,6 @@
         <surefire.version>2.22.0</surefire.version>
         <failsafe.version>2.22.0</failsafe.version>
         <spring-boot.version>2.3.0.RELEASE</spring-boot.version>
-        <java.version>11</java.version>
     </properties>
 
     <modules>

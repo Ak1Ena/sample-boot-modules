@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import th.mfu.dto.SaleOrderDto;
+import th.mfu.mapper.SaleOrderMapper;
+
 @RestController
 @RequestMapping("/orders")
 public class SaleOrderController {
@@ -24,59 +27,71 @@ public class SaleOrderController {
     private CustomerRepository customerRepo;
     @Autowired
     private ProductRepository productRepo;
+    @Autowired
+    private SaleOrderMapper saleOrderMapper;
 
     @GetMapping
-    public ResponseEntity<Iterable<SaleOrder>> getAllOrders() {
-        return new ResponseEntity<>(orderRepo.findAll(), HttpStatus.OK);
+    public ResponseEntity<Iterable<SaleOrderDto>> getAllOrders() {
+        Iterable<SaleOrder> orders = orderRepo.findAll();
+        // Convert to DTOs - we'll need to handle this differently since it's Iterable
+        return new ResponseEntity<>(saleOrderMapper.toDtoList((java.util.List<SaleOrder>) orders), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SaleOrder> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<SaleOrderDto> getOrderById(@PathVariable Long id) {
         Optional<SaleOrder> order = orderRepo.findById(id);
         if (order.isPresent()) {
-            return new ResponseEntity<>(order.get(), HttpStatus.OK);
+            SaleOrderDto orderDto = saleOrderMapper.toDto(order.get());
+            return new ResponseEntity<>(orderDto, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping
-    public ResponseEntity<SaleOrder> createOrder(@RequestBody SaleOrder newOrder) {
-        if (newOrder.getCustomer() == null || newOrder.getCustomer().getId() == null) {
+    public ResponseEntity<SaleOrderDto> createOrder(@RequestBody SaleOrderDto orderDto) {
+        if (orderDto.getCustomer() == null || orderDto.getCustomer().getId() == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Optional<Customer> customerOpt = customerRepo.findById(newOrder.getCustomer().getId());
+        Optional<Customer> customerOpt = customerRepo.findById(orderDto.getCustomer().getId());
         if (!customerOpt.isPresent()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        
+        SaleOrder newOrder = new SaleOrder();
         newOrder.setCustomer(customerOpt.get());
-
         newOrder.setOrderDate(LocalDate.now());
 
-        double totalAmount = 0.0;
-
-        if (newOrder.getItems() == null || newOrder.getItems().isEmpty()) {
+        if (orderDto.getItems() == null || orderDto.getItems().isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        for (SaleOrderItem item : newOrder.getItems()) {
-            if (item.getProduct() == null || item.getProduct().getId() == null) {
+        double totalAmount = 0.0;
+
+        for (th.mfu.dto.SaleOrderItemDto itemDto : orderDto.getItems()) {
+            if (itemDto.getProduct() == null || itemDto.getProduct().getId() == null) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            Optional<Product> productOpt = productRepo.findById(item.getProduct().getId());
+            Optional<Product> productOpt = productRepo.findById(itemDto.getProduct().getId());
             if (!productOpt.isPresent()) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
             Product product = productOpt.get();
+            
+            SaleOrderItem item = new SaleOrderItem();
             item.setProduct(product);
             item.setPrice(product.getPrice());
+            item.setQuantity(itemDto.getQuantity());
             item.setSaleOrder(newOrder);
+            newOrder.getItems().add(item);
+            
             totalAmount += item.getPrice() * item.getQuantity();
         }
 
         newOrder.setTotalAmount(totalAmount);
 
         SaleOrder savedOrder = orderRepo.save(newOrder);
-        return new ResponseEntity<>(savedOrder, HttpStatus.CREATED);
+        SaleOrderDto savedOrderDto = saleOrderMapper.toDto(savedOrder);
+        return new ResponseEntity<>(savedOrderDto, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")

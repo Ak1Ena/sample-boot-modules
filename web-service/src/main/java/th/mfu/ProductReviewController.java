@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import th.mfu.dto.ProductReviewDto;
+import th.mfu.mapper.ProductReviewMapper;
+
 @RestController
 @RequestMapping("/reviews")
 public class ProductReviewController {
@@ -23,31 +26,38 @@ public class ProductReviewController {
 
     @Autowired
     private ProductRepository productRepo;
+    
+    @Autowired
+    private ProductReviewMapper productReviewMapper;
 
     @PostMapping
-    public ResponseEntity<ProductReview> createReview(@RequestBody ProductReview review) {
-        if (review.getCustomer() == null || review.getCustomer().getId() == null) {
+    public ResponseEntity<ProductReviewDto> createReview(@RequestBody ProductReviewDto reviewDto) {
+        if (reviewDto.getCustomer() == null || reviewDto.getCustomer().getId() == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Optional<Customer> customerOpt = customerRepo.findById(review.getCustomer().getId());
+        Optional<Customer> customerOpt = customerRepo.findById(reviewDto.getCustomer().getId());
         if (!customerOpt.isPresent()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if (review.getProduct() == null || review.getProduct().getId() == null) {
+        if (reviewDto.getProduct() == null || reviewDto.getProduct().getId() == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Optional<Product> productOpt = productRepo.findById(review.getProduct().getId());
+        Optional<Product> productOpt = productRepo.findById(reviewDto.getProduct().getId());
         if (!productOpt.isPresent()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
+        ProductReview review = new ProductReview();
         review.setCustomer(customerOpt.get());
         review.setProduct(productOpt.get());
+        review.setRating(reviewDto.getRating());
+        review.setComment(reviewDto.getComment());
         review.setReviewDate(LocalDate.now());
 
         ProductReview savedReview = reviewRepo.save(review);
-        return new ResponseEntity<>(savedReview, HttpStatus.CREATED);
+        ProductReviewDto savedReviewDto = productReviewMapper.toDto(savedReview);
+        return new ResponseEntity<>(savedReviewDto, HttpStatus.CREATED);
     }
 }
 

@@ -12,6 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import th.mfu.dto.CustomerDto;
+
 @SpringBootTest
 public class CustomerControllerTest {
 
@@ -20,7 +22,7 @@ public class CustomerControllerTest {
 
     @Test
     public void createAndGet() {
-        Customer cust = new Customer();
+        CustomerDto cust = new CustomerDto();
         cust.setName("Dummy Dummy");
         cust.setAddress("123 Main st.");
         cust.setEmail("dummy@email.com");
@@ -28,18 +30,18 @@ public class CustomerControllerTest {
         ResponseEntity<String> response = controller.createCustomer(cust);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
-        ResponseEntity<Collection> getResponse = controller.getAllCustomers();
+        ResponseEntity<Collection<CustomerDto>> getResponse = controller.getAllCustomers();
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
         assertNotNull(getResponse.getBody());
     }
 
      @Test
     public void createAndDelete() {
-        ResponseEntity<Collection> initialGetResponse = controller.getAllCustomers();
+        ResponseEntity<Collection<CustomerDto>> initialGetResponse = controller.getAllCustomers();
         assertEquals(HttpStatus.OK, initialGetResponse.getStatusCode());
         int initialSize = initialGetResponse.getBody().size();
 
-        Customer cust = new Customer();
+        CustomerDto cust = new CustomerDto();
         cust.setName("Delete Me");
         cust.setAddress("456 Delete Lane");
         cust.setEmail("delete@me.com");
@@ -47,13 +49,13 @@ public class CustomerControllerTest {
         ResponseEntity<String> createResponse = controller.createCustomer(cust);
         assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
 
-        ResponseEntity<Collection> getResponseAfterCreate = controller.getAllCustomers();
+        ResponseEntity<Collection<CustomerDto>> getResponseAfterCreate = controller.getAllCustomers();
         assertEquals(HttpStatus.OK, getResponseAfterCreate.getStatusCode());
         int afterCreateSize = getResponseAfterCreate.getBody().size();
         assertEquals(initialSize + 1, afterCreateSize);
 
-        List<Customer> customersAfterCreate = (List<Customer>) getResponseAfterCreate.getBody();
-        Customer newCustomer = customersAfterCreate.stream()
+        List<CustomerDto> customersAfterCreate = (List<CustomerDto>) getResponseAfterCreate.getBody();
+        CustomerDto newCustomer = customersAfterCreate.stream()
                                                     .filter(c -> "Delete Me".equals(c.getName()))
                                                     .findFirst()
                                                     .orElse(null);
@@ -63,7 +65,7 @@ public class CustomerControllerTest {
         ResponseEntity<String> deleteResponse = controller.deleteCustomer(customerId);
         assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
 
-        ResponseEntity<Collection> getResponseAfterDelete = controller.getAllCustomers();
+        ResponseEntity<Collection<CustomerDto>> getResponseAfterDelete = controller.getAllCustomers();
         assertEquals(HttpStatus.OK, getResponseAfterDelete.getStatusCode());
         assertEquals(initialSize, getResponseAfterDelete.getBody().size());
     }

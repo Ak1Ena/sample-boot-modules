@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import th.mfu.dto.ProductDto;
+import th.mfu.dto.ProductReviewDto;
+import th.mfu.mapper.ProductMapper;
+import th.mfu.mapper.ProductReviewMapper;
+
 @RestController
 public class ProductController {
 
@@ -21,48 +26,65 @@ public class ProductController {
 
     @Autowired
     private ProductReviewRepository reviewRepo;
+    
+    @Autowired
+    private ProductMapper productMapper;
+    
+    @Autowired
+    private ProductReviewMapper productReviewMapper;
 
     @GetMapping("/products/{id}")
-    public ResponseEntity<Product> getProduct(@PathVariable Integer id){
+    public ResponseEntity<ProductDto> getProduct(@PathVariable Integer id){
         return prodRepo.findById(id)
-                .map(product -> new ResponseEntity<>(product, HttpStatus.OK))
+                .map(product -> {
+                    ProductDto productDto = productMapper.toDto(product);
+                    return new ResponseEntity<>(productDto, HttpStatus.OK);
+                })
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @GetMapping("/products")
-    public ResponseEntity<Collection> getAllProducts(){
-        return new ResponseEntity<Collection>(prodRepo.findAll(), HttpStatus.OK);
+    public ResponseEntity<Collection<ProductDto>> getAllProducts(){
+        List<Product> products = prodRepo.findAll();
+        List<ProductDto> productDtos = productMapper.toDtoList(products);
+        return new ResponseEntity<>(productDtos, HttpStatus.OK);
     }
 
     @GetMapping("/products/description/{infix}")
-    public ResponseEntity<Collection> searchByDescription(@PathVariable String infix){
-        return new ResponseEntity<Collection>(prodRepo.findByDescriptionContaining(infix), HttpStatus.OK);
+    public ResponseEntity<Collection<ProductDto>> searchByDescription(@PathVariable String infix){
+        List<Product> products = prodRepo.findByDescriptionContaining(infix);
+        List<ProductDto> productDtos = productMapper.toDtoList(products);
+        return new ResponseEntity<>(productDtos, HttpStatus.OK);
     }
 
     @GetMapping("/products/price")
-    public ResponseEntity<Collection> listByPrice(){
-        return new ResponseEntity<Collection>(prodRepo.findByOrderByPrice(), HttpStatus.OK);
+    public ResponseEntity<Collection<ProductDto>> listByPrice(){
+        List<Product> products = prodRepo.findByOrderByPrice();
+        List<ProductDto> productDtos = productMapper.toDtoList(products);
+        return new ResponseEntity<>(productDtos, HttpStatus.OK);
     }
 
     @GetMapping("/products/{id}/reviews")
-    public ResponseEntity<List<ProductReview>> getReviewsForProduct(@PathVariable Integer id) {
+    public ResponseEntity<List<ProductReviewDto>> getReviewsForProduct(@PathVariable Integer id) {
         if (!prodRepo.existsById(id)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         List<ProductReview> reviews = reviewRepo.findByProductId(id);
-        return new ResponseEntity<>(reviews, HttpStatus.OK);
+        List<ProductReviewDto> reviewDtos = productReviewMapper.toDtoList(reviews);
+        return new ResponseEntity<>(reviewDtos, HttpStatus.OK);
     }
 
     @PostMapping("/products")
-    public ResponseEntity<String> createProduct(@RequestBody Product product){
+    public ResponseEntity<String> createProduct(@RequestBody ProductDto productDto){
+        Product product = productMapper.toEntity(productDto);
         prodRepo.save(product);
-        return new ResponseEntity<String>("Product created", HttpStatus.CREATED);
+        return new ResponseEntity<>("Product created", HttpStatus.CREATED);
     }
 
     @DeleteMapping("products/{id}")
     public ResponseEntity<String> deleteProduct(@PathVariable Integer id){
         prodRepo.deleteById(id);
-        return new ResponseEntity<String>("Product deleted", HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("Product deleted", HttpStatus.NO_CONTENT);
     }
 
 }

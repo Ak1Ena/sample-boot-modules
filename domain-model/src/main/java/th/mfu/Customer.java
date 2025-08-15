@@ -12,10 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 
 @Entity
 public class Customer {
@@ -31,11 +28,9 @@ public class Customer {
     private LocalDate birthday;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("customer-orders")
     private List<SaleOrder> saleOrders = new ArrayList<>();
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<ProductReview> reviews = new ArrayList<>();
 
     public String getName(){
@@ -62,8 +57,7 @@ public class Customer {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-    @JsonSerialize(using = LocalDateSerializer.class)
-    @JsonDeserialize(using = LocalDateDeserializer.class)
+
     public LocalDate getBirthday() {
         return birthday;
     }
