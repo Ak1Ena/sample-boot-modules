@@ -7,7 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+// import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "sale_order_item")
@@ -18,7 +18,7 @@ public class SaleOrderItem {
     private Long id;
 
     @ManyToOne
-    @JsonBackReference("order-items")
+    // @JsonBackReference("order-items")
     private SaleOrder saleOrder;
 
     @ManyToOne
